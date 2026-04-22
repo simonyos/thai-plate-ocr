@@ -74,8 +74,8 @@ Python SDK using `ROBOFLOW_API_KEY`; never redistributed from this repo.
 
 | Stage | Workspace / Project | Images | Classes | Purpose |
 |---|---|---:|---:|---|
-| 1 | `dataset-format-conversion-iidaz / thailand-license-plate-recognition` | 343 | 1 | Plate bounding boxes |
-| 2 | `card-detector / thai-license-plate-character-detect` | ~2,500 | 48 | Character bounding boxes (Thai consonants, digits, province markers) |
+| 1 | `nextra / thai-licence-plate-detect-b93xq` | 294 | 1 (`th-plate`) | Plate bounding boxes |
+| 2 | `card-detector / thai-license-plate-character-detect` | 2,521 | 46 | Character bounding boxes (Thai consonants, digits, province markers) |
 
 ## Quickstart
 
