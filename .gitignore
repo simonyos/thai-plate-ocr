@@ -28,8 +28,8 @@ wandb/
 runs/
 
 # Data & artifacts (too large / not ours to redistribute)
-data/
-artifacts/
+/data/
+/artifacts/
 *.pt
 *.pth
 *.onnx
