@@ -76,7 +76,9 @@ def _fetch(ref: RoboflowDatasetRef, dest: Path, api_key: str) -> Path:
 
     rf = Roboflow(api_key=api_key)
     project = rf.workspace(ref.workspace).project(ref.project)
-    project.version(ref.version).download(ref.export_format, location=str(dest))
+    # `overwrite=True` is essential: the SDK silently no-ops when `location`
+    # already exists (even if it is empty), which dest.mkdir above creates.
+    project.version(ref.version).download(ref.export_format, location=str(dest), overwrite=True)
 
     _flatten_if_nested(dest)
 
