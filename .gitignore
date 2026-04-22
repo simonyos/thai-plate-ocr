@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.Python
+
+# Env
+.env
+.env.local
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Experiment tracking
+mlruns/
+mlartifacts/
+wandb/
+runs/
+
+# Data & artifacts (too large / not ours to redistribute)
+data/
+artifacts/
+*.pt
+*.pth
+*.onnx
+*.joblib
+*.pkl
+yolov8*.pt
+yolo11*.pt
+
+# Notebooks
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
