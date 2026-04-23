@@ -69,7 +69,7 @@ def _annotate(img: Image.Image, preds: list) -> Image.Image:
     char_font = _load_font(20)
     for p in preds:
         draw.rectangle(p.plate_bbox_xyxy, outline="red", width=6)
-        text_thai = translate([c.cls for c in p.characters])
+        text_thai = " ".join(translate(line) for line in p.text_lines)
         label = f"{text_thai}  ({p.plate_confidence:.2f})"
         tx = p.plate_bbox_xyxy[0]
         ty = max(0, p.plate_bbox_xyxy[1] - 38)
@@ -115,7 +115,7 @@ def _zoomed_crop(img: Image.Image, preds: list, pad: float = 0.6, min_w: int = 6
     bx2 = (x2 - cx1) * sx
     by2 = (y2 - cy1) * sy
     draw.rectangle([bx1, by1, bx2, by2], outline="red", width=6)
-    text_thai = translate([c.cls for c in p.characters])
+    text_thai = " ".join(translate(line) for line in p.text_lines)
     label = f"{text_thai}  ({p.plate_confidence:.2f})"
     ty = max(0, by1 - 42)
     tb = draw.textbbox((bx1, ty), label, font=font)
@@ -188,7 +188,7 @@ def main() -> None:
                 "n_plates": len(preds),
                 "best_conf": max(q.plate_confidence for q in preds),
                 "codes": [q.text for q in preds],
-                "thai": [translate([c.cls for c in q.characters]) for q in preds],
+                "thai": [" ".join(translate(line) for line in q.text_lines) for q in preds],
             }
         else:
             row = {"idx": i, "file": p.name, "n_plates": 0, "best_conf": 0.0, "codes": [], "thai": []}
