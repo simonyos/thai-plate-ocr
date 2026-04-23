@@ -43,19 +43,64 @@ def _find_val_images(root: Path) -> list[Path]:
     return sorted(val_dir.glob("*.jpg")) + sorted(val_dir.glob("*.png"))
 
 
+def _load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    for path in (
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/System/Library/Fonts/Helvetica.ttc",
+    ):
+        try:
+            return ImageFont.truetype(path, size)
+        except OSError:
+            continue
+    return ImageFont.load_default()
+
+
 def _annotate(img: Image.Image, preds: list) -> Image.Image:
     out = img.copy()
     draw = ImageDraw.Draw(out)
-    try:
-        font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 20)
-    except OSError:
-        font = ImageFont.load_default()
+    font = _load_font(28)
     for p in preds:
-        draw.rectangle(p.plate_bbox_xyxy, outline="red", width=4)
-        y = max(0, p.plate_bbox_xyxy[1] - 24)
+        draw.rectangle(p.plate_bbox_xyxy, outline="red", width=6)
         label = f"{p.text}  ({p.plate_confidence:.2f})"
-        draw.text((p.plate_bbox_xyxy[0], y), label, fill="red", font=font)
+        tx = p.plate_bbox_xyxy[0]
+        ty = max(0, p.plate_bbox_xyxy[1] - 34)
+        bbox = draw.textbbox((tx, ty), label, font=font)
+        draw.rectangle(bbox, fill="red")
+        draw.text((tx, ty), label, fill="white", font=font)
     return out
+
+
+def _zoomed_crop(img: Image.Image, preds: list, pad: float = 0.6, min_w: int = 640) -> Image.Image | None:
+    """Crop around the highest-confidence plate with padding, scale to min_w wide."""
+    if not preds:
+        return None
+    p = max(preds, key=lambda q: q.plate_confidence)
+    x1, y1, x2, y2 = p.plate_bbox_xyxy
+    w, h = x2 - x1, y2 - y1
+    cx1 = max(0, int(x1 - pad * w))
+    cy1 = max(0, int(y1 - pad * h))
+    cx2 = min(img.width, int(x2 + pad * w))
+    cy2 = min(img.height, int(y2 + pad * h))
+    crop = img.crop((cx1, cy1, cx2, cy2))
+    if crop.width < min_w:
+        scale = min_w / crop.width
+        crop = crop.resize((int(crop.width * scale), int(crop.height * scale)))
+    # re-draw bbox in crop coords
+    sx = crop.width / (cx2 - cx1)
+    sy = crop.height / (cy2 - cy1)
+    draw = ImageDraw.Draw(crop)
+    font = _load_font(32)
+    bx1 = (x1 - cx1) * sx
+    by1 = (y1 - cy1) * sy
+    bx2 = (x2 - cx1) * sx
+    by2 = (y2 - cy1) * sy
+    draw.rectangle([bx1, by1, bx2, by2], outline="red", width=6)
+    label = f"{p.text}  ({p.plate_confidence:.2f})"
+    ty = max(0, by1 - 38)
+    tb = draw.textbbox((bx1, ty), label, font=font)
+    draw.rectangle(tb, fill="red")
+    draw.text((bx1, ty), label, fill="white", font=font)
+    return crop
 
 
 def _make_gallery(images: list[Image.Image], out: Path, cols: int = 3) -> None:
@@ -98,7 +143,10 @@ def main() -> None:
         preds = pipe.predict(img)
         annotated = _annotate(img, preds)
         annotated.save(figs_dir / f"test_{i:02d}.png")
-        gallery.append(annotated)
+        zoom = _zoomed_crop(img, preds)
+        if zoom is not None:
+            zoom.save(figs_dir / f"test_{i:02d}_zoom.png")
+        gallery.append(zoom if zoom is not None else annotated)
         if preds:
             row = {
                 "idx": i,
