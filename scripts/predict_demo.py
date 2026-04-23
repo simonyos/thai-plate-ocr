@@ -28,7 +28,7 @@ def main() -> None:
 
     print(f"image: {img_path}")
     for p in preds:
-        print(f"  bbox={p.plate_bbox_xyxy} conf={p.confidence:.3f} text={p.text!r}")
+        print(f"  bbox={p.plate_bbox_xyxy} conf={p.plate_confidence:.3f} text={p.text!r}")
 
     draw = ImageDraw.Draw(img)
     for p in preds:
